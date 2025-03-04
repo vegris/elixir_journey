@@ -1,0 +1,47 @@
+diff --git a/lib/elixir/src/elixir_erl_pass.erl b/lib/elixir/src/elixir_erl_pass.erl
+index f1c13ca24..7b3358011 100644
+--- a/lib/elixir/src/elixir_erl_pass.erl
++++ b/lib/elixir/src/elixir_erl_pass.erl
+@@ -237,40 +237,12 @@ translate({{'.', _, [Left, Right]}, Meta, []}, _Ann, S)
+   TRight = {atom, Ann, Right},
+ 
+   Generated = erl_anno:set_generated(true, Ann),
+-  {InnerVar, SI} = elixir_erl_var:build('_', SL),
+-  TInnerVar = {var, Generated, InnerVar},
+-  {Var, SV} = elixir_erl_var:build('_', SI),
+-  TVar = {var, Generated, Var},
+ 
+   case proplists:get_value(no_parens, Meta, false) of
+     true ->
+-      TError = {tuple, Ann, [{atom, Ann, badkey}, TRight, TVar]},
+-      {{'case', Generated, TLeft, [
+-        {clause, Generated,
+-          [{map, Ann, [{map_field_exact, Ann, TRight, TVar}]}],
+-          [],
+-          [TVar]},
+-        {clause, Generated,
+-          [TVar],
+-          [],
+-          [{'case', Generated, ?remote(Generated, elixir_erl_pass, no_parens_remote, [TVar, TRight]), [
+-            {clause, Generated,
+-             [{tuple, Generated, [{atom, Generated, ok}, TInnerVar]}], [], [TInnerVar]},
+-            {clause, Generated,
+-             [{var, Generated, '_'}], [], [?remote(Ann, erlang, error, [TError])]}
+-          ]}]}
+-      ]}, SV};
++      {{call, Generated, {remote, Generated, {atom, Ann, erlang}, {atom, Ann, map_get}}, [TRight, TLeft]}, SL};
+     false ->
+-      {{'case', Generated, TLeft, [
+-        {clause, Generated,
+-          [{map, Ann, [{map_field_exact, Ann, TRight, TVar}]}],
+-          [],
+-          [?remote(Generated, elixir_erl_pass, parens_map_field, [TRight, TVar])]},
+-        {clause, Generated,
+-          [TVar],
+-          [],
+-          [{call, Generated, {remote, Generated, TVar, TRight}, []}]}
+-      ]}, SV}
++      {{call, Generated, {remote, Generated, TLeft, TRight}, []}, SL}
+     end;
+ 
+ translate({{'.', _, [Left, Right]}, Meta, Args}, _Ann, S)
